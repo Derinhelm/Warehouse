@@ -66,7 +66,7 @@ class Warehouse:
         self.necessaryCount = {}
         self.discount = {}
         self.products = {} # для каждого продукта - список оптовых упаковок(полученных от производителя)
-        self.plannedDelivery = [] # [(описание оптовой упаковки, количество оптовых упаковок)]
+        self.plannedDelivery = ProviderRequest([]) # [(описание оптовой упаковки, количество оптовых упаковок)]
         self.deleted = []
         self.shopsDeficit = []
         self.sold = []
@@ -81,29 +81,32 @@ class Warehouse:
             self.products[curProductTitle] = [beginPack] # какое-то начальное колво
 
     def receivingProducts(self):
-        for i in range(len(self.plannedDelivery)):
-            if self.plannedDelivery[i][0].timeDelivery == 0:
-                curTitleProduct = self.plannedDelivery[i][0].productTitle
-                for j in range(self.plannedDelivery[i][1]):
-                    self.products[curTitleProduct].append(self.plannedDelivery[i][0])
+        for i in range(len(self.plannedDelivery.products)):
+            if self.plannedDelivery.products[i][0].timeDelivery == 0:
+                curTitleProduct = self.plannedDelivery.products[i][0].productTitle
+                for j in range(self.plannedDelivery.products[i][1]):
+                    self.products[curTitleProduct].append(self.plannedDelivery.products[i][0])
             else:
-                self.plannedDelivery[i][0].timeDelivery -= 1
+                self.plannedDelivery.products[i][0].timeDelivery -= 1
 
     def deleteOverdue(self):
         '''Удаление просроченных'''
+        deletedThisDay = []
         for productTitle in self.products.keys():
             curProducts = self.products[productTitle]
             for i in range(len(curProducts) - 1, -1, -1):
-                # удаляем с конца, так что индексы ни на что не влияют ))
+                # удаляем с конца, так что индексы ни на что не влияют
                 if curProducts[i].shelfLife == 1:
-                    self.deleted.append(curProducts[i])
+                    deletedThisDay.append(curProducts[i])
                     curProducts.pop(i)
                 elif curProducts[i].shelfLife == discountShellLife:
                     curProducts[i].makeDiscount(self.discount[curProducts[i].productTitle])
                 else:
                     curProducts[i].shelfLife -= 1
+        self.deleted.append(deletedThisDay)
 
     def workShopsRequests(self, allShopsRequests):
+        curDaySold = []
         for curShopRequest in allShopsRequests:
             for (curProductTitle, curCount) in curShopRequest.orderList:
                 beginCurCount = curCount
@@ -111,12 +114,13 @@ class Warehouse:
                 while curProductsList and curProductsList[0].numberPack < curCount:
                     #даем меньше, чем просят
                     # дальше в списке мб еще маленькие пакетики, но мы пока их игнорируем
-                    self.sold.append(curProductsList[0])
+                    curDaySold.append(curProductsList[0])
                     self.money += curProductsList[0].getWholesalePrice()
                     curCount -= curProductsList[0].numberPack
                     curProductsList.pop(0)
                 if beginCurCount != 0:
                     self.shopsDeficit.append(curCount / beginCurCount) # сколько недодали
+        self.sold.append(curDaySold)
 
     def supplierRequest(self):
         for curProductTitle in self.products.keys():
@@ -135,8 +139,13 @@ class Warehouse:
         self.workShopsRequests(allShopsRequests)
         self.supplierRequest()
 
+    def getInfo(self):
+        global productsTitles
+        return (self.money, self.deleted, self.sold, productsTitles[:self.allCountProducts])
+       # return self.money
+
 class Model:
-    def __init__(self, countProducts, countShop, fullness):
+    def __init__(self, countProducts, countShop, fullness = 0):
         self.countProducts = countProducts
         self.countShop = countShop
         self.fullness = fullness
@@ -148,6 +157,10 @@ class Model:
             newShopRequest = ShopRequest(self.countProducts)
             allShopsRequests.append(newShopRequest)
         self.warehouse.newDay(allShopsRequests)
+        return self
+
+    def getInfo(self):
+        return self.warehouse.getInfo()
 
 
 m = Model(3,1,0.5)
