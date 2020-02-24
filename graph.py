@@ -1,8 +1,9 @@
-
-from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QFrame, QDesktopWidget,
-    QSplitter, QStyleFactory, QApplication, QLabel, QGridLayout, QVBoxLayout, QPushButton, QInputDialog, QLineEdit)
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QDesktopWidget,
+                             QApplication, QLabel, QGridLayout, QVBoxLayout, QPushButton, QLineEdit)
+
 from classes import Model
+
 
 def groupByProducts(curList, names):
     ansPriceDict = {}
@@ -23,38 +24,145 @@ def groupByProducts(curList, names):
     return (ansPriceDict, ansCountDict)
 
 
-class SecondWindow(QWidget):
-    def __init__(self, parent, day, model, daysCount):
+def addNewDay(allDict, newDict):
+    for productTitle in newDict.keys():
+        if productTitle in allDict.keys():
+            allDict[productTitle] += newDict[productTitle]
+        else:
+            allDict[productTitle] = newDict[productTitle]
+class EndWindow(QWidget):
+    def __init__(self, parent, day, model, daysCount, allDeletedPrice, allDeletedCount, allSoldPrice, allSoldCount):
         # Передаём ссылку на родительский элемент и чтобы виджет
         # отображался как самостоятельное окно указываем тип окна
         super().__init__(parent, Qt.Window)
         self.day = day
         self.model = model
         self.daysCount = daysCount
+        self.allDeletedPrice = allDeletedPrice
+        self.allDeletedCount = allDeletedCount
+        self.allSoldPrice = allSoldPrice
+        self.allSoldCount = allSoldCount
+        self.build()
+
+    def build(self):
+
+        grid = QGridLayout()
+
+        numberLine = 0
+
+        curDayTitle = QLabel("Итоговая статистика")
+        grid.addWidget(curDayTitle, numberLine, 0)
+
+        endButton = QPushButton("Завершить работу")
+        endButton.clicked.connect(self.end)
+        grid.addWidget(endButton, numberLine, 3)
+
+        numberLine += 1
+
+        titleTitle = QLabel("Название ")
+        grid.addWidget(titleTitle, numberLine, 0)
+
+        soldTitle = QLabel("Продано ")
+        grid.addWidget(soldTitle, numberLine, 1)
+
+        deletedTitle = QLabel("Списано ")
+        grid.addWidget(deletedTitle, numberLine, 3, 1, 2)
+
+        numberLine += 1
+
+        priceTitle = QLabel("Цена ")
+        grid.addWidget(priceTitle, numberLine, 1)
+
+        countTitle = QLabel("Количество ")
+        grid.addWidget(countTitle, numberLine, 2)
+
+        priceTitle = QLabel("Цена ")
+        grid.addWidget(priceTitle, numberLine, 3)
+
+        countTitle = QLabel("Количество ")
+        grid.addWidget(countTitle, numberLine, 4)
+
+        numberLine += 1
+
+        for curProductTitle in self.allDeletedCount.keys():
+            curTitle = QLabel(curProductTitle)
+            grid.addWidget(curTitle, numberLine, 0)
+
+            curSoldPriceTitle = QLabel(str(self.allSoldPrice[curProductTitle]))
+            grid.addWidget(curSoldPriceTitle, numberLine, 1)
+
+            curSoldCountTitle = QLabel(str(self.allSoldCount[curProductTitle]))
+            grid.addWidget(curSoldCountTitle, numberLine, 2)
+
+            curDeletedPriceTitle = QLabel(str(self.allDeletedPrice[curProductTitle]))
+            grid.addWidget(curDeletedPriceTitle, numberLine, 3)
+
+            curDeletedCountTitle = QLabel(str(self.allDeletedCount[curProductTitle]))
+            grid.addWidget(curDeletedCountTitle, numberLine, 4)
+
+            numberLine += 1
+
+        self.setLayout(grid)
+        e = QApplication.desktop()
+        # self.setGeometry(0, 0, e.height(), e.width())
+        self.setGeometry(444, 300, 800, 900)
+        self.setWindowTitle('Итог')
+
+        self.center()
+
+    def center(self):
+
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def end(self):
+        self.close()
+
+
+class DayWindow(QWidget):
+    def __init__(self, parent, day, model, daysCount, allDeletedPrice, allDeletedCount, allSoldPrice, allSoldCount):
+        # Передаём ссылку на родительский элемент и чтобы виджет
+        # отображался как самостоятельное окно указываем тип окна
+        super().__init__(parent, Qt.Window)
+        self.day = day
+        self.model = model
+        self.daysCount = daysCount
+        self.allDeletedPrice = allDeletedPrice
+        self.allDeletedCount = allDeletedCount
+        self.allSoldPrice = allSoldPrice
+        self.allSoldCount = allSoldCount
         self.build()
 
     def nextDay(self):
         nextDayModel = self.model.nextDay()
         if self.day != self.daysCount:
-            secondWin = SecondWindow(self, self.day + 1, nextDayModel, self.daysCount)
+            dayWin = DayWindow(self, self.day + 1, nextDayModel, self.daysCount, self.allDeletedPrice,
+                                     self.allDeletedCount, self.allSoldPrice, self.allSoldCount)
             self.close()
-            secondWin.show()
+            dayWin.show()
         else:
+            endWin = EndWindow(self, self.day, self.model, self.daysCount, self.allDeletedPrice,
+                                     self.allDeletedCount, self.allSoldPrice, self.allSoldCount)
             self.close()
-            # написать третье окно с общей статистикой и умным выходом(с сохранением)!!!!
+            endWin.show()
             return
 
     def build(self):
 
         grid = QGridLayout()
-        maxColumn = 4
         (dayMoney, deleted, sold, names) = self.model.getInfo()
         (curDeletedPrice, curDeletedCount) = groupByProducts(deleted[-1], names)
         (curSoldPrice, curSoldCount) = groupByProducts(sold[-1], names)
+        addNewDay(self.allDeletedPrice, curDeletedPrice)
+        addNewDay(self.allDeletedCount, curDeletedCount)
+        addNewDay(self.allSoldPrice, curSoldPrice)
+        addNewDay(self.allSoldCount, curSoldCount)
+
 
         numberDay = QLabel("День " + str(self.day))
         grid.addWidget(numberDay, 0, 0)
-
 
         beginButton = QPushButton("Следующий день")
         beginButton.clicked.connect(self.nextDay)
@@ -75,20 +183,17 @@ class SecondWindow(QWidget):
         deletedTitle = QLabel("Списано ")
         grid.addWidget(deletedTitle, 2, 3, 1, 2)
 
-
         priceTitle = QLabel("Цена ")
         grid.addWidget(priceTitle, 3, 1)
 
         countTitle = QLabel("Количество ")
         grid.addWidget(countTitle, 3, 2)
 
-
         priceTitle = QLabel("Цена ")
         grid.addWidget(priceTitle, 3, 3)
 
         countTitle = QLabel("Количество ")
         grid.addWidget(countTitle, 3, 4)
-
 
         numberLine = 4
         for curProductTitle in names:
@@ -109,20 +214,60 @@ class SecondWindow(QWidget):
 
             numberLine += 1
 
-        #dayData = QLabel(str(self.model.getInfo()))
 
 
         curDayTitle = QLabel("Итоговая статистика")
         grid.addWidget(curDayTitle, numberLine, 0)
+        numberLine += 1
 
+        titleTitle = QLabel("Название ")
+        grid.addWidget(titleTitle, numberLine, 0)
 
+        soldTitle = QLabel("Продано ")
+        grid.addWidget(soldTitle, numberLine, 1)
 
+        deletedTitle = QLabel("Списано ")
+        grid.addWidget(deletedTitle, numberLine, 3, 1, 2)
+
+        numberLine += 1
+        
+        priceTitle = QLabel("Цена ")
+        grid.addWidget(priceTitle, numberLine, 1)
+
+        countTitle = QLabel("Количество ")
+        grid.addWidget(countTitle, numberLine, 2)
+
+        priceTitle = QLabel("Цена ")
+        grid.addWidget(priceTitle, numberLine, 3)
+
+        countTitle = QLabel("Количество ")
+        grid.addWidget(countTitle, numberLine, 4)
+
+        numberLine += 1
+
+        for curProductTitle in names:
+            curTitle = QLabel(curProductTitle)
+            grid.addWidget(curTitle, numberLine, 0)
+
+            curSoldPriceTitle = QLabel(str(self.allSoldPrice[curProductTitle]))
+            grid.addWidget(curSoldPriceTitle, numberLine, 1)
+
+            curSoldCountTitle = QLabel(str(self.allSoldCount[curProductTitle]))
+            grid.addWidget(curSoldCountTitle, numberLine, 2)
+
+            curDeletedPriceTitle = QLabel(str(self.allDeletedPrice[curProductTitle]))
+            grid.addWidget(curDeletedPriceTitle, numberLine, 3)
+
+            curDeletedCountTitle = QLabel(str(self.allDeletedCount[curProductTitle]))
+            grid.addWidget(curDeletedCountTitle, numberLine, 4)
+
+            numberLine += 1
 
         self.setLayout(grid)
         e = QApplication.desktop()
-        #self.setGeometry(0, 0, e.height(), e.width())
+        # self.setGeometry(0, 0, e.height(), e.width())
         self.setGeometry(444, 300, 800, 900)
-        self.setWindowTitle('QSplitter')
+        self.setWindowTitle('Текущий день')
 
         self.center()
 
@@ -134,18 +279,17 @@ class SecondWindow(QWidget):
         self.move(qr.topLeft())
 
 
-
 class BeginWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.secondWin = None
         self.build()
 
     def openWin(self):
         model = Model(int(self.products.text()), int(self.shops.text()))
-        secondWin = SecondWindow(self, 1, model.nextDay(), int(self.daysCount.text()))
+        dayWin = DayWindow(self, 1, model.nextDay(), int(self.daysCount.text()), {},
+                                 {}, {}, {})
         self.close()
-        secondWin.show()
+        dayWin.show()
 
     def build(self):
         productsTitle = QLabel("Количество продуктов")
@@ -181,7 +325,6 @@ class BeginWindow(QWidget):
 
         self.setLayout(vbox)
 
-
         self.setGeometry(444, 300, 350, 300)
         self.center()
         self.setWindowTitle('Начальное окно')
@@ -190,9 +333,7 @@ class BeginWindow(QWidget):
         return
 
     def center(self):
-
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-

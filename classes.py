@@ -1,22 +1,28 @@
 import random
 
-timeForDelivery = 2
+timeForDelivery = 0
 productsTitles = ['молоко', 'сыр', 'масло', 'колбаса', 'сгущенка', 'хлеб', 'печенье', 'шоколад', 'мармелад',
                   'гречка', 'пшено', 'макароны', 'соль', 'сахар', 'чай', 'кофе']
-maxDiscount = 20
-minDiscount = 3
+maxDiscount = 0.2
+minDiscount = 0.01
 
-minNecessaryCount = 20
-maxNecessaryCount = 70
+minNecessaryCount = 100
+maxNecessaryCount = 300
 
 minCountProduct = 0
-maxCountProduct = 100 # сколько розничных упаковок одного продукта может заказать магазин
+maxCountProduct = 30 # сколько розничных упаковок одного продукта может заказать магазин
 
 minPrice = 10
 maxPrice = 1000
 
-minBeginCount = 1
-maxBeginCount = 100
+minBeginCount = 70
+maxBeginCount = 300
+
+minShellLife = 1
+maxShellLife = 10
+
+minNumberPack = 5
+maxNumberPack = 30
 
 discountShellLife = 2
 
@@ -33,8 +39,8 @@ class WholesalePack:
     '''Оптовая упаковка'''
 
     def __init__(self, ProductTitle):
-        self.shelfLife = random.randint(1, 10)
-        self.numberPack = random.randint(10, 30)
+        self.shelfLife = random.randint(minShellLife, maxShellLife)
+        self.numberPack = random.randint(minNumberPack, maxNumberPack)
         self.productTitle = ProductTitle
         self.price = random.randint(minPrice, maxPrice) # цена за розничную упаковку
         global timeForDelivery
@@ -78,7 +84,7 @@ class Warehouse:
             self.necessaryCount[curProductTitle] = random.randint(minNecessaryCount, maxNecessaryCount)
             beginPack = WholesalePack(curProductTitle)
             beginPack.timeDelivery = 0 # уже доставлено
-            self.products[curProductTitle] = [beginPack] # какое-то начальное колво
+            self.products[curProductTitle] = [beginPack] # какое-то начальное количество
 
     def receivingProducts(self):
         for i in range(len(self.plannedDelivery.products)):
@@ -111,26 +117,30 @@ class Warehouse:
             for (curProductTitle, curCount) in curShopRequest.orderList:
                 beginCurCount = curCount
                 curProductsList = self.products[curProductTitle]
-                while curProductsList and curProductsList[0].numberPack < curCount:
-                    #даем меньше, чем просят
-                    # дальше в списке мб еще маленькие пакетики, но мы пока их игнорируем
-                    curDaySold.append(curProductsList[0])
-                    self.money += curProductsList[0].getWholesalePrice()
-                    curCount -= curProductsList[0].numberPack
-                    curProductsList.pop(0)
+                i = 0
+                # общая стратегия - видим оптовую упаковку, меньшую, чем требуют, отдаем ее и идем искать дальше
+                while i < len(curProductsList):
+                    while i < len(curProductsList) and curProductsList[i].numberPack >= curCount:
+                        i += 1
+                    if i == len(curProductsList):
+                        break                     #даем меньше, чем просят. Больше ничего дать не можем
+                    curDaySold.append(curProductsList[i])
+                    self.money += curProductsList[i].getWholesalePrice()
+                    curCount -= curProductsList[i].numberPack
+                    curProductsList.pop(i) # i - первый нерассмотренный
                 if beginCurCount != 0:
                     self.shopsDeficit.append(curCount / beginCurCount) # сколько недодали
         self.sold.append(curDaySold)
 
     def supplierRequest(self):
+        neccesaryList = []
         for curProductTitle in self.products.keys():
             countCurProduct = 0
-            neccesaryList = []
             for curPack in self.products[curProductTitle]:
                 countCurProduct += curPack.numberPack
             if countCurProduct < self.necessaryCount[curProductTitle]:
                 neccesaryList.append((curProductTitle, self.necessaryCount[curProductTitle] - countCurProduct))
-            self.plannedDelivery = ProviderRequest(neccesaryList)
+        self.plannedDelivery = ProviderRequest(neccesaryList)
 
 
     def newDay(self, allShopsRequests):
