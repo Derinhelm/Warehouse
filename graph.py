@@ -6,37 +6,37 @@ from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QDesktopWidget, QHeaderView, 
 
 from classes import Model
 
-max_width = 0
-sold_width = 1
-price_width = 1
-count_width = 1
-deleted_width = 1
-balance_width = 1
-shop_width = 1
-req_width = 1
-given_width = 1
-names_width = 1
-data_width = 1
-title_width = 1
-line_size = 1
-column_size = 1
-title_size = 1
-end_window_size = 2
-font_size = 20
+MAX_WIDTH = 0
+SOLD_WIDTH = 1
+PRICE_WIDTH = 1
+COUNT_WIDTH = 1
+DELETED_WIDTH = 1
+BALANCE_WIDTH = 1
+SHOP_WIDTH = 1
+REQ_WIDTH = 1
+GIVEN_WIDTH = 1
+NAMES_WIDTH = 1
+DATA_WIDTH = 1
+TITLE_WIDTH = 1
+LINE_SIZE = 1
+COLUMN_SIZE = 1
+TITLE_SIZE = 1
+END_WINDOW_SIZE = 2
+FONT_SIZE = 20
 
 
 def create_sold_delete_labels(table, number_line, number_column):
-    global names_width, sold_width, deleted_width
+    global NAMES_WIDTH, SOLD_WIDTH, DELETED_WIDTH
     table.setItem(number_line, number_column, QTableWidgetItem("Название"))
-    number_column += names_width
+    number_column += NAMES_WIDTH
     table.setItem(number_line, number_column, QTableWidgetItem("Продано\n(рубли)"))
-    number_column += price_width
+    number_column += PRICE_WIDTH
     table.setItem(number_line, number_column, QTableWidgetItem("Продано\n(упаковки)"))
-    number_column += count_width
+    number_column += COUNT_WIDTH
     table.setItem(number_line, number_column, QTableWidgetItem("Списано\n(рубли)"))
-    number_column += price_width
+    number_column += PRICE_WIDTH
     table.setItem(number_line, number_column, QTableWidgetItem("Списано\n(упаковки)"))
-    number_column += count_width
+    number_column += COUNT_WIDTH
     return number_column
 
 
@@ -48,21 +48,21 @@ def fill_column(table, number_first_line, number_column, data, names):
         else:
             elem = name  # заполняем столбец названий
         table.setItem(number_line, number_column, QTableWidgetItem(elem))
-        number_line += line_size
+        number_line += LINE_SIZE
 
 
 def create_statistics(table, number_line, number_column, names, sold_price, sold_count, deleted_price, deleted_count):
     fill_column(table, number_line, number_column, None, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
 
     fill_column(table, number_line, number_column, sold_price, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
     fill_column(table, number_line, number_column, sold_count, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
     fill_column(table, number_line, number_column, deleted_price, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
     fill_column(table, number_line, number_column, deleted_count, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
 
     number_line += len(names)
 
@@ -70,33 +70,33 @@ def create_statistics(table, number_line, number_column, names, sold_price, sold
 
 
 def create_shops_info_labels(table, number_line, number_column, count_shops):
-    global shop_width
-    for i in range(1, count_shops + title_size):
+    global SHOP_WIDTH
+    for i in range(1, count_shops + TITLE_SIZE):
         table.setItem(number_line, number_column, QTableWidgetItem("Магазин " + str(i) + "\n(Запр.)"))
-        number_column += shop_width
+        number_column += SHOP_WIDTH
         table.setItem(number_line, number_column, QTableWidgetItem("Магазин " + str(i) + "\n(Пред.)"))
-        number_column += shop_width
+        number_column += SHOP_WIDTH
     return number_column
 
 
 def create_shops_info(table, number_line, number_column, count_shops, names, shops_requests, shops_given):
-    for i in range(1, count_shops + title_size):
+    for i in range(1, count_shops + TITLE_SIZE):
         fill_column(table, number_line, number_column, shops_requests[i], names)
-        number_column += req_width
+        number_column += REQ_WIDTH
         fill_column(table, number_line, number_column, shops_given[i], names)
-        number_column += given_width
+        number_column += GIVEN_WIDTH
     return number_column
 
 
 def create_data_info(grid, number_line, number_column, data_info):
-    global data_width
+    global DATA_WIDTH
     s = "Наименований: " + str(data_info[0]) + ", "
     s += "магазинов:" + str(data_info[1]) + ", "
     s += "дней:" + str(data_info[2]) + ", "
     s += "спрос:" + str(data_info[3])
     title = QLabel(s)
     title.setAlignment(Qt.AlignHCenter)
-    grid.addWidget(title, number_line, number_column, 1, end_window_size)
+    grid.addWidget(title, number_line, number_column, 1, END_WINDOW_SIZE)
 
 
 def create_day_table(table, names, cur_sold_price,
@@ -105,14 +105,14 @@ def create_day_table(table, names, cur_sold_price,
     (number_line, number_column) = (0, 0)
     number_column = create_sold_delete_labels(table, number_line, number_column)
     table.setItem(number_line, number_column, QTableWidgetItem("Осталось\n(упаковки)"))
-    number_column += column_size
+    number_column += COLUMN_SIZE
     create_shops_info_labels(table, number_line, number_column, count_shops)
-    number_line += line_size
+    number_line += LINE_SIZE
     number_column = 0
     (new_number_line, number_column) = create_statistics(table, number_line, number_column, names, cur_sold_price,
                                                          cur_sold_count, cur_deleted_price, cur_deleted_count)
     fill_column(table, number_line, number_column, balance, names)
-    number_column += column_size
+    number_column += COLUMN_SIZE
     create_shops_info(table, number_line, number_column, count_shops, names, last_shop_requests, last_shop_given)
     return
 
@@ -123,7 +123,7 @@ def create_itog_table(table, names, all_sold_price, all_sold_count, all_deleted_
     number_line = 0
     number_column = create_sold_delete_labels(table, number_line, number_column)
     create_shops_info_labels(table, number_line, number_column, count_shops)
-    number_line += line_size
+    number_line += LINE_SIZE
     number_column = 0
     (new_number_line, number_column) = create_statistics(table, number_line, number_column, names, all_sold_price,
                                                          all_sold_count, all_deleted_price, all_deleted_count)
@@ -136,7 +136,7 @@ def create_finish_table(table, names, all_sold_price, all_sold_count, all_delete
     number_line = 0
     number_column = create_sold_delete_labels(table, number_line, number_column)
     table.setItem(number_line, number_column, QTableWidgetItem("Осталось\n(упаковки)"))
-    number_line += line_size
+    number_line += LINE_SIZE
     number_column = 0
     (new_number_line, new_number_column) = create_statistics(table, number_line, number_column, names, all_sold_price,
                                                              all_sold_count, all_deleted_price, all_deleted_count)
@@ -149,46 +149,49 @@ class EndWindow(QWidget):
         # Передаём ссылку на родительский элемент и чтобы виджет
         # отображался как самостоятельное окно указываем тип окна
         super().__init__(parent, Qt.Window)
-        (names, all_sold_price, all_sold_count, all_deleted_price, all_deleted_count, balance) = model.get_all_info()
+        info = model.get_info()
+        (names, all_sold_price, all_sold_count, all_deleted_price, all_deleted_count, balance) = (
+            info.names, info.all_sold_price, info.all_sold_count, info.all_deleted_price, info.all_deleted_count,
+            info.balance)
         grid = QGridLayout()
         table = QTableWidget(self)
         table.setWordWrap(True)
         table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        global price_width, count_width, names_width, balance_width
-        width = 2 * (price_width + count_width) + names_width + balance_width
+        global PRICE_WIDTH, COUNT_WIDTH, NAMES_WIDTH, BALANCE_WIDTH
+        width = 2 * (PRICE_WIDTH + COUNT_WIDTH) + NAMES_WIDTH + BALANCE_WIDTH
         table.setColumnCount(width)
         count_shops = model.get_count_shops()
         count_products = model.get_count_products()
-        table.setRowCount(count_products + title_size)
+        table.setRowCount(count_products + TITLE_SIZE)
         number_line = 0
         number_column = 0
         title = QLabel("Итоговая статистика")
-        title.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        title.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         title.setAlignment(Qt.AlignHCenter)
-        grid.addWidget(title, number_line, 0, 1, end_window_size)
-        number_line += line_size
+        grid.addWidget(title, number_line, 0, 1, END_WINDOW_SIZE)
+        number_line += LINE_SIZE
         data_info = model.get_data_info()
         create_data_info(grid, number_line, number_column, data_info)
-        number_line += line_size
+        number_line += LINE_SIZE
         (all_sold, all_deleted) = model.get_all_money()
         money_label = QLabel(
             "Продано на " + str(round(all_sold)) + "(руб.), списано на " + str(round(all_deleted)) + "(руб.)")
         money_label.setAlignment(Qt.AlignHCenter)
-        grid.addWidget(money_label, number_line, number_column, 1, end_window_size)
-        number_line += line_size
+        grid.addWidget(money_label, number_line, number_column, 1, END_WINDOW_SIZE)
+        number_line += LINE_SIZE
         create_finish_table(table, names, all_sold_price, all_sold_count, all_deleted_price, all_deleted_count, balance)
-        grid.addWidget(table, number_line, 0, 1, end_window_size)
-        number_line += count_shops + title_size
+        grid.addWidget(table, number_line, 0, 1, END_WINDOW_SIZE)
+        number_line += count_shops + TITLE_SIZE
         end_button = QPushButton("Завершить работу")
-        end_button.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        end_button.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         end_button.setStyleSheet('background: red;')
         end_button.clicked.connect(self.end)
         grid.addWidget(end_button, number_line, 0)
         begin_button = QPushButton("Начать  заново  ")
-        begin_button.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        begin_button.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         begin_button.setStyleSheet('background: green;')
         begin_button.clicked.connect(self.begin_new)
-        global max_width
+        global MAX_WIDTH
         grid.addWidget(begin_button, number_line, 1)
         self.setLayout(grid)
         QApplication.desktop()
@@ -221,82 +224,86 @@ class DayWindow(QWidget):
         self.model = model
         widget = QWidget()
         grid = QGridLayout(widget)
+        info = self.model.get_info()
         (names, cur_sold_price, cur_sold_count, cur_deleted_price, cur_deleted_count, all_sold_price, all_sold_count,
-         all_deleted_price, all_deleted_count, balance) = self.model.get_info()
-        global shop_width, deleted_width, sold_width, balance_width, names_width, title_width, max_width
+         all_deleted_price, all_deleted_count, balance) = (
+        info.names, info.cur_sold_price, info.cur_sold_count, info.cur_deleted_price, info.cur_deleted_count, info.all_sold_price,
+        info.all_sold_count, info.all_deleted_price, info.all_deleted_count, info.balance)
+        global SHOP_WIDTH, DELETED_WIDTH, SOLD_WIDTH, BALANCE_WIDTH, NAMES_WIDTH, TITLE_WIDTH, MAX_WIDTH
         count_shops = self.model.get_count_shops()
         count_products = self.model.get_count_products()
-        (all_shop_requests, last_shop_requests, all_shop_given, last_shop_given) = self.model.get_shops_info()
+        (all_shop_requests, last_shop_requests, all_shop_given, last_shop_given) = (
+            info.all_shop_requests, info.last_shop_requests, info.all_shop_given, info.last_shop_given)
         number_day = QLabel("День " + str(self.model.get_day_number()))
-        number_day.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        number_day.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         number_line = 0
         number_column = 0
         grid.addWidget(number_day, number_line, number_column)
-        number_column += title_width
+        number_column += TITLE_WIDTH
         data_info = self.model.get_data_info()
         create_data_info(grid, number_line, number_column, data_info)
-        number_line += line_size
+        number_line += LINE_SIZE
         number_column = 0
         cur_day_title = QLabel("Текущий день")
-        cur_day_title.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        cur_day_title.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         grid.addWidget(cur_day_title, number_line, 0)
-        number_column += title_width
+        number_column += TITLE_WIDTH
         (day_sold, day_deleted) = self.model.get_day_money()
         money_label = QLabel(
             "Продано на " + str(round(day_sold)) + "(руб.), списано на " + str(round(day_deleted)) + "(руб.)")
         grid.addWidget(money_label, number_line, number_column)
-        number_line += line_size
+        number_line += LINE_SIZE
 
         table1 = QTableWidget(self)
         table1.setWordWrap(True)
-        table1.setColumnCount(max_width)
-        table1.setRowCount(count_products + title_size)
+        table1.setColumnCount(MAX_WIDTH)
+        table1.setRowCount(count_products + TITLE_SIZE)
         table1.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         number_column = 0
-        grid.addWidget(table1, number_line, number_column, count_shops, max_width)
+        grid.addWidget(table1, number_line, number_column, count_shops, MAX_WIDTH)
         create_day_table(table1, names, cur_sold_price,
                          cur_sold_count, cur_deleted_price,
                          cur_deleted_count, last_shop_requests, last_shop_given, count_shops, balance)
-        number_line += count_shops + title_size
+        number_line += count_shops + TITLE_SIZE
         number_column = 0
         cur_day_title = QLabel("Итоговая статистика")
-        cur_day_title.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        cur_day_title.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         grid.addWidget(cur_day_title, number_line, number_column)
-        number_column += title_width
+        number_column += TITLE_WIDTH
         (all_sold, all_deleted) = self.model.get_all_money()
         money_label = QLabel(
             "Продано на " + str(round(all_sold)) + "(руб.), списано на " + str(round(all_deleted)) + "(руб.)")
         grid.addWidget(money_label, number_line, number_column)
-        number_line += line_size
+        number_line += LINE_SIZE
         table2 = QTableWidget(self)
         table2.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        table2.setColumnCount(max_width - balance_width)
-        table2.setRowCount(count_products + title_size)
+        table2.setColumnCount(MAX_WIDTH - BALANCE_WIDTH)
+        table2.setRowCount(count_products + TITLE_SIZE)
         create_itog_table(table2, names, all_sold_price, all_sold_count, all_deleted_price, all_deleted_count,
                           count_shops,
                           all_shop_requests, all_shop_given)
 
-        grid.addWidget(table2, number_line, 0, count_shops, max_width - balance_width)
-        number_line += count_shops + title_size
+        grid.addWidget(table2, number_line, 0, count_shops, MAX_WIDTH - BALANCE_WIDTH)
+        number_line += count_shops + TITLE_SIZE
         next_button = QPushButton("Следующий день")
-        next_button.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        next_button.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         next_button.clicked.connect(self.next_day)
         next_button.setStyleSheet('background: green;')
 
         number_column = 0
-        b_width = max_width // 3
+        b_width = MAX_WIDTH // 3
         grid.addWidget(next_button, number_line, number_column, 1, b_width)
         number_column += b_width
 
         quick_end_button = QPushButton("До конца моделирования")
-        quick_end_button.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        quick_end_button.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         quick_end_button.clicked.connect(self.finish_modeling)
         quick_end_button.setStyleSheet('background: blue;')
         grid.addWidget(quick_end_button, number_line, number_column, 1, b_width)
         number_column += b_width
 
         finish_button = QPushButton("Завершить работу")
-        finish_button.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        finish_button.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         finish_button.clicked.connect(self.end_work)
         finish_button.setStyleSheet('background: red;')
 
@@ -348,8 +355,8 @@ class BeginWindow(QWidget):
 
     def open_win(self):
         shops_count = int(self.shops.text())
-        global max_width, shop_width, deleted_width, sold_width, balance_width, names_width
-        max_width = shops_count * 2 * shop_width + 2 * price_width + 2 * sold_width + balance_width + names_width
+        global MAX_WIDTH, SHOP_WIDTH, DELETED_WIDTH, SOLD_WIDTH, BALANCE_WIDTH, NAMES_WIDTH
+        MAX_WIDTH = shops_count * 2 * SHOP_WIDTH + 2 * PRICE_WIDTH + 2 * SOLD_WIDTH + BALANCE_WIDTH + NAMES_WIDTH
         model = Model(int(self.products.text()), shops_count, int(self.days_count.text()), self.agiotage.value() / 100)
         day_win = DayWindow(self, model.next_day())
         self.close()
@@ -385,7 +392,7 @@ class BeginWindow(QWidget):
         hbox4.addWidget(self.agiotage)
 
         self.beginButton = QPushButton("Начать моделирование")
-        self.beginButton.setFont(PyQt5.QtGui.QFont("Times", font_size, PyQt5.QtGui.QFont.Bold))
+        self.beginButton.setFont(PyQt5.QtGui.QFont("Times", FONT_SIZE, PyQt5.QtGui.QFont.Bold))
         self.beginButton.clicked.connect(self.open_win)
 
         hbox5 = QHBoxLayout()

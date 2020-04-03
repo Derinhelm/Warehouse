@@ -1,39 +1,58 @@
 import random
 
-time_for_delivery = 0
-products_titles = ['молоко', 'сыр', 'масло', 'колбаса', 'сгущенка', 'хлеб', 'печенье', 'шоколад', 'мармелад',
+TIME_FOR_DELIVERY = 0
+PRODUCTS_TITLES = ['молоко', 'сыр', 'масло', 'колбаса', 'сгущенка', 'хлеб', 'печенье', 'шоколад', 'мармелад',
                    'гречка', 'пшено', 'макароны', 'соль', 'сахар', 'чай', 'кофе']
-max_discount = 0.2
-min_discount = 0.01
+MAX_DISCOUNT = 0.2
+MIN_DISCOUNT = 0.01
 
-min_necessary_count = 100
-max_necessary_count = 300
+MIN_NECESSARY_COUNT = 100
+MAX_NECESSARY_COUNT = 300
 
-min_count_product = 0
-max_count_product = 200  # сколько розничных упаковок одного продукта может заказать магазин
+MIN_COUNT_PRODUCT = 0
+MAX_COUNT_PRODUCT = 200  # сколько розничных упаковок одного продукта может заказать магазин
 
-min_price = 10
-max_price = 1000
+MIN_PRICE = 10
+MAX_PRICE = 1000
 
-min_begin_count = 70
-max_begin_count = 300
+MIN_BEGIN_COUNT = 70
+MAX_BEGIN_COUNT = 300
 
-min_shell_life = 1
-max_shell_life = 10
+MIN_SHELL_LIFE = 1
+MAX_SHELL_LIFE = 10
 
-min_number_pack = 5
-max_number_pack = 30
+MIN_NUMBER_PACK = 5
+MAX_NUMBER_PACK = 30
 
-discount_shell_life = 2
+DISCOUNT_SHELL_LIFE = 2
 
+class Info:
+    def __init__(self, names, last_day_sold_price, last_day_sold_count, last_day_deleted_price,
+                last_day_deleted_count, all_sold_price, all_sold_count, all_deleted_price,
+                all_deleted_count, all_day_shops_requests, last_day_shops_requests, all_day_shops_given,
+            last_day_shops_given, balance):
+        self.names = names
+        self.cur_sold_price = last_day_sold_price
+        self.cur_sold_count = last_day_sold_count
+        self.cur_deleted_price = last_day_deleted_price
+        self.cur_deleted_count = last_day_deleted_count
+        self.all_sold_price = all_sold_price
+        self.all_sold_count = all_sold_count
+        self.all_deleted_price = all_deleted_price
+        self.all_deleted_count = all_deleted_count
+        self.all_shop_requests = all_day_shops_requests
+        self.last_shop_requests = last_day_shops_requests
+        self.all_shop_given = all_day_shops_given
+        self.last_shop_given = last_day_shops_given
+        self.balance = balance
 
 class ShopRequest:
     def __init__(self, count_products):
         self.order_list = []
-        global products_titles
+        global PRODUCTS_TITLES
         for i in range(count_products):
-            cur_product = products_titles[i]
-            count_cur_product = random.randint(min_count_product, max_count_product)
+            cur_product = PRODUCTS_TITLES[i]
+            count_cur_product = random.randint(MIN_COUNT_PRODUCT, MAX_COUNT_PRODUCT)
             self.order_list.append((cur_product, count_cur_product))
 
 
@@ -41,12 +60,12 @@ class WholesalePack:
     '''Оптовая упаковка'''
 
     def __init__(self, product_title):
-        self.shelf_life = random.randint(min_shell_life, max_shell_life)
-        self.number_pack = random.randint(min_number_pack, max_number_pack)
+        self.shelf_life = random.randint(MIN_SHELL_LIFE, MAX_SHELL_LIFE)
+        self.number_pack = random.randint(MIN_NUMBER_PACK, MAX_NUMBER_PACK)
         self.product_title = product_title
-        self.price = random.randint(min_price, max_price)  # цена за розничную упаковку
-        global time_for_delivery
-        self.time_delivery = time_for_delivery  # когда становится 0 - продукт получается на складе
+        self.price = random.randint(MIN_PRICE, MAX_PRICE)  # цена за розничную упаковку
+        global TIME_FOR_DELIVERY
+        self.time_delivery = TIME_FOR_DELIVERY  # когда становится 0 - продукт получается на складе
 
     def make_discount(self, discount):
         self.price = self.price * (1 - discount)
@@ -113,8 +132,8 @@ class Warehouse:
         self.last_day_sold_count = {}  # словарь, название - количество упаковок, проданных за посл.день
         self.shops_deficit = []
         self.sold = []
-        global products_titles, min_discount, max_discount, min_necessary_count, max_necessary_count
-        self.names = products_titles[:self.all_count_products]
+        global PRODUCTS_TITLES, MIN_DISCOUNT, MAX_DISCOUNT, MIN_NECESSARY_COUNT, MAX_NECESSARY_COUNT
+        self.names = PRODUCTS_TITLES[:self.all_count_products]
         self.money = 0
         self.shop_requests = {}
         self.last_day_shops_requests = {}  # словарь словарей
@@ -129,9 +148,9 @@ class Warehouse:
                 self.all_day_shops_given[i][product_title] = 0
 
         for i in range(self.all_count_products):
-            cur_product_title = products_titles[i]
-            self.discount[cur_product_title] = random.uniform(min_discount, max_discount)
-            self.necessary_count[cur_product_title] = random.randint(min_necessary_count, max_necessary_count)
+            cur_product_title = PRODUCTS_TITLES[i]
+            self.discount[cur_product_title] = random.uniform(MIN_DISCOUNT, MAX_DISCOUNT)
+            self.necessary_count[cur_product_title] = random.randint(MIN_NECESSARY_COUNT, MAX_NECESSARY_COUNT)
             begin_pack = WholesalePack(cur_product_title)
             begin_pack.time_delivery = 0  # уже доставлено
             self.products[cur_product_title] = [begin_pack]  # какое-то начальное количество
@@ -155,7 +174,7 @@ class Warehouse:
                 if cur_products[i].shelf_life == 1:
                     deleted_this_day.append(cur_products[i])
                     cur_products.pop(i)
-                elif cur_products[i].shelf_life == discount_shell_life:
+                elif cur_products[i].shelf_life == DISCOUNT_SHELL_LIFE:
                     cur_products[i].make_discount(self.discount[cur_products[i].product_title])
                 else:
                     cur_products[i].shelf_life -= 1
@@ -237,20 +256,11 @@ class Warehouse:
 
     def get_info(self):
         balance = self.create_balance()
-        return (self.names, self.last_day_sold_price, self.last_day_sold_count, self.last_day_deleted_price,
+        return Info(self.names, self.last_day_sold_price, self.last_day_sold_count, self.last_day_deleted_price,
                 self.last_day_deleted_count, self.all_sold_price, self.all_sold_count, self.all_deleted_price,
-                self.all_deleted_count, balance)
+                self.all_deleted_count, self.all_day_shops_requests, self.last_day_shops_requests, self.all_day_shops_given,
+            self.last_day_shops_given, balance)
 
-    def get_all_info(self):
-        balance = self.create_balance()
-        return (
-            self.names, self.all_sold_price, self.all_sold_count, self.all_deleted_price, self.all_deleted_count,
-            balance)
-
-    def get_shops_info(self):
-        return (
-            self.all_day_shops_requests, self.last_day_shops_requests, self.all_day_shops_given,
-            self.last_day_shops_given)
 
     def get_day_money(self):
         sold = 0
@@ -279,9 +289,9 @@ class Model:
         self.count_days = count_days
         self.agiotage = agiotage
         self.number_day = 0
-        global min_count_product, max_count_product
-        min_count_product = round(min_count_product * agiotage)
-        max_count_product = round(max_count_product * agiotage)
+        global MIN_COUNT_PRODUCT, MAX_COUNT_PRODUCT
+        MIN_COUNT_PRODUCT = round(MIN_COUNT_PRODUCT * agiotage)
+        MAX_COUNT_PRODUCT = round(MAX_COUNT_PRODUCT * agiotage)
 
     def next_day(self):
         all_shops_requests = []
@@ -303,12 +313,6 @@ class Model:
 
     def get_info(self):
         return self.warehouse.get_info()
-
-    def get_all_info(self):
-        return self.warehouse.get_all_info()
-
-    def get_shops_info(self):
-        return self.warehouse.get_shops_info()
 
     def get_data_info(self):
         return self.count_products, self.count_shops, self.count_days, self.agiotage
